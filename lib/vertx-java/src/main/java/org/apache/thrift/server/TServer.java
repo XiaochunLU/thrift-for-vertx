@@ -24,6 +24,7 @@ import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TTransportFactory;
+import org.vertx.java.core.ServerSSLSupport;
 
 /**
  * Generic interface for a Thrift server.
@@ -81,6 +82,63 @@ public abstract class TServer {
 
     public T outputProtocolFactory(TProtocolFactory factory) {
       this.outputProtocolFactory = factory;
+      return (T) this;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static abstract class AbstractServerArgsWithSSLSupport<T extends AbstractServerArgsWithSSLSupport<T>>
+      extends AbstractServerArgs<AbstractServerArgsWithSSLSupport<T>> {
+    boolean ssl = false;
+    String keyStorePath;
+    String keyStorePassword;
+    String trustStorePath;
+    String trustStorePassword;
+    boolean clientAuthRequired = false;
+    
+    public AbstractServerArgsWithSSLSupport() { }
+    
+    @SuppressWarnings("rawtypes")
+    public void configureSSL(ServerSSLSupport server) {
+      if (!ssl)
+        return;
+      server.setSSL(true);
+      server.setKeyStorePath(keyStorePath);
+      server.setKeyStorePassword(keyStorePassword);
+      if (clientAuthRequired) {
+        server.setTrustStorePath(trustStorePath);
+        server.setTrustStorePassword(trustStorePassword);
+        server.setClientAuthRequired(true);
+      }
+    }
+    
+    public T setSSL(boolean ssl) {
+      this.ssl = ssl;
+      return (T) this;
+    }
+
+    public T setKeyStorePath(String keyStorePath) {
+      this.keyStorePath = keyStorePath;
+      return (T) this;
+    }
+
+    public T setKeyStorePassword(String keyStorePassword) {
+      this.keyStorePassword = keyStorePassword;
+      return (T) this;
+    }
+
+    public T setTrustStorePath(String trustStorePath) {
+      this.trustStorePath = trustStorePath;
+      return (T) this;
+    }
+
+    public T setTrustStorePassword(String trustStorePassword) {
+      this.trustStorePassword = trustStorePassword;
+      return (T) this;
+    }
+
+    public T setClientAuthRequired(boolean clientAuthRequired) {
+      this.clientAuthRequired = clientAuthRequired;
       return (T) this;
     }
   }

@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
+import org.vertx.java.core.Handler;
 
 /**
  * Encapsulates an async method call
@@ -41,16 +42,20 @@ public abstract class TAsyncMethodCall<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(TAsyncMethodCall.class.getName());
 
   private final TAsyncClientManager clientManager;
-  private final AsyncResultHandler<T> handler;
+  private final AsyncResultHandler<T> resultHandler;
   private final boolean isOneway;
 
   private final int seqid;
 
-  protected TAsyncMethodCall(AsyncResultHandler<T> handler, TAsyncClientManager clientManager, boolean isOneway) {
-    this.handler = handler;
+  private boolean completed = false;
+  private Handler<TAsyncMethodCall<T>> completeHandler = null;
+  private long timerId;
+
+  protected TAsyncMethodCall(AsyncResultHandler<T> resultHandler, TAsyncClientManager clientManager, boolean isOneway) {
+    this.resultHandler = resultHandler;
     this.clientManager = clientManager;
     this.isOneway = isOneway;
-    
+
     seqid = clientManager.nextSeqId();
   }
 
@@ -72,7 +77,7 @@ public abstract class TAsyncMethodCall<T> {
       return;
     }
     if (isOneway) {
-      handler.handle(new SucceededResult<T>());
+      resultHandler.handle(new SucceededResult<T>());
       onComplete();
     }
   }
@@ -80,6 +85,10 @@ public abstract class TAsyncMethodCall<T> {
   protected abstract void write_args(TProtocol oprot) throws TException;
 
   public void responseReady(TProtocol iprot) {
+    if (completed) {
+      LOGGER.warn("Method call has already completed (error occured), seqid: {}", seqid);
+      return;
+    }
     T result = null;
     Exception cause = null;
     try {
@@ -93,9 +102,9 @@ public abstract class TAsyncMethodCall<T> {
       return;
     }
     if (cause != null) {
-      handler.handle(new FailedResult<T>(cause));
+      resultHandler.handle(new FailedResult<T>(cause));
     } else {
-      handler.handle(new SucceededResult<T>(result));
+      resultHandler.handle(new SucceededResult<T>(result));
     }
     onComplete();
   }
@@ -127,11 +136,37 @@ public abstract class TAsyncMethodCall<T> {
   
   private final void onComplete() {
     clientManager.unregisterMethodCall(seqid, this);
+    if (completeHandler != null) completeHandler.handle(this);
+    completed = true;
   }
 
-  private final void onError(Exception e) {
-    handler.handle(new FailedResult<T>(e));
+  public void setCompleteHanlder(Handler<TAsyncMethodCall<T>> completeHandler) {
+    this.completeHandler = completeHandler;
+  }
+
+  public void onError(Throwable e) {
+    if (completed) {
+      LOGGER.warn("Method call has already completed, seqid: " + seqid, e);
+      return;
+    }
+    resultHandler.handle(new FailedResult<T>(e));
     onComplete();
+  }
+
+  public boolean isOneway() {
+    return this.isOneway;
+  }
+
+  public int getSeqId() {
+    return seqid;
+  }
+  
+  public long getTimerId() {
+    return timerId;
+  }
+
+  public void setTimerId(long timerId) {
+    this.timerId = timerId;
   }
 
   private static final class SucceededResult<U> implements AsyncResult<U> {

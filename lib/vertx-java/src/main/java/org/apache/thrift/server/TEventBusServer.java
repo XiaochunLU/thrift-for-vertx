@@ -88,8 +88,10 @@ public class TEventBusServer extends TServer {
       @Override
       public void handle(AsyncResult<Void> event) {
         if (event.succeeded()) {
-          LOGGER.info("handler registered to the specified address, start serving...");
+          LOGGER.info("Handler registered to the specified address, start serving...");
           setServing(true);
+        } else {
+          LOGGER.error("Failed to register handler.", event.cause());
         }
       }
     });
@@ -105,8 +107,10 @@ public class TEventBusServer extends TServer {
       @Override
       public void handle(AsyncResult<Void> event) {
         if (event.succeeded()) {
-          LOGGER.info("handler unregistered, server stopped.");
+          LOGGER.info("Handler unregistered, server stopped.");
           setServing(false);
+        } else {
+          LOGGER.error("Failed to unregister handler.", event.cause());
         }
       }
     });

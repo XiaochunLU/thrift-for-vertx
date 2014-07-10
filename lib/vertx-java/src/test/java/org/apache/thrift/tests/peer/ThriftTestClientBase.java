@@ -1,9 +1,5 @@
-package vertx.tests.eventbus.peer;
+package org.apache.thrift.tests.peer;
 
-import org.apache.thrift.async.TEventBusClientManager;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.transport.TEventBusTransport;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.VoidHandler;
@@ -15,33 +11,15 @@ import tutorial.InvalidOperation;
 import tutorial.Operation;
 import tutorial.Work;
 
-public class EventBusTestClient extends TestClientBase {
-
-  private static final String address = "calculator_service";
+public class ThriftTestClientBase extends TestClientBase {
 
   @Override
   public void start() {
     super.start();
     tu.appReady();
   }
-  
-  public void testNormalScenaro() {
-    TEventBusClientManager clientManager = new TEventBusClientManager(
-        new TEventBusTransport.Args(vertx.eventBus(), address),
-        new TBinaryProtocol.Factory());
-    Calculator.VertxClient client = new Calculator.VertxClient(clientManager);
-    performNormalScenaro(client);
-  }
 
-  public void testCompactProtocol() {
-    TEventBusClientManager clientManager = new TEventBusClientManager(
-        new TEventBusTransport.Args(vertx.eventBus(), address),
-        new TCompactProtocol.Factory());
-    Calculator.VertxClient client = new Calculator.VertxClient(clientManager);
-    performNormalScenaro(client);
-  }
-  
-  private void performNormalScenaro(Calculator.VertxClient client) {
+  protected void performNormalScenaro(final Calculator.VertxClient client) {
     final TestCompleteCounter counter = new TestCompleteCounter(new VoidHandler() {
       @Override
       public void handle() {
@@ -96,18 +74,16 @@ public class EventBusTestClient extends TestClientBase {
         tu.azzert(event.succeeded());
         int diff = event.result();
         System.out.println("15-10=" + diff);
-        counter.decrease();
-      }
-    });
-    counter.increase();
 
-    client.getStruct(1, new AsyncResultHandler<SharedStruct>() {
-      @Override
-      public void handle(AsyncResult<SharedStruct> event) {
-        tu.azzert(event.succeeded());
-        SharedStruct log = event.result();
-        System.out.println("Check log: " + log.value);
-        counter.decrease();
+        client.getStruct(1, new AsyncResultHandler<SharedStruct>() {
+          @Override
+          public void handle(AsyncResult<SharedStruct> event) {
+            tu.azzert(event.succeeded());
+            SharedStruct log = event.result();
+            System.out.println("Check log: " + log.value);
+            counter.decrease();
+          }
+        });
       }
     });
     counter.increase();

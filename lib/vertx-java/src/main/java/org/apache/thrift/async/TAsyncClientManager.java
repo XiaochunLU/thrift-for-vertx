@@ -18,8 +18,8 @@
  */
 package org.apache.thrift.async;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.thrift.TException;
@@ -27,6 +27,7 @@ import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolDecorator;
 import org.apache.thrift.protocol.TProtocolFactory;
+import org.apache.thrift.transport.TClientTransport;
 import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,34 +37,40 @@ import org.slf4j.LoggerFactory;
  * on events.
  */
 @SuppressWarnings("rawtypes")
-public abstract class TAsyncClientManager implements AsyncResponseHandler {
+public class TAsyncClientManager implements AsyncResponseHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TAsyncClientManager.class.getName());
 
-  protected TTransport transport;
-  protected TProtocolFactory inputProtocolFactory;
-  protected TProtocolFactory outputProtocolFactory;
+  private final TClientTransport transport;
+  private final TProtocolFactory inputProtocolFactory;
+  private final TProtocolFactory outputProtocolFactory;
 
   // We have to ensure that different method calls have different seqid's
   private final AtomicInteger seqidGenerator = new AtomicInteger(0);
   
-  // TODO: Is it necessary to use a concurrent map?
-  private final Map<Integer, TAsyncMethodCall> seqid2MethodCall = new ConcurrentHashMap<>();
+  // It is safe here to use a HashMap since a verticle instance is single-threaded.
+  private final Map<Integer, TAsyncMethodCall> seqid2MethodCall = new HashMap<Integer, TAsyncMethodCall>();
 
-  protected TAsyncClientManager() {
-  }
-
-  protected TAsyncClientManager(TTransport transport, TProtocolFactory protocolFactory) {
+  public TAsyncClientManager(TClientTransport transport, TProtocolFactory protocolFactory) {
     this(transport, protocolFactory, protocolFactory);
   }
 
-  protected TAsyncClientManager(TTransport transport, TProtocolFactory inputProtocolFactory, TProtocolFactory outputProtocolFactory) {
+  public TAsyncClientManager(TClientTransport transport,
+      TProtocolFactory inputProtocolFactory,
+      TProtocolFactory outputProtocolFactory) {
+    if (!transport.isOpen())
+      throw new IllegalStateException("transport is not open.");
+    this.transport = transport;
     this.inputProtocolFactory = inputProtocolFactory;
     this.outputProtocolFactory = outputProtocolFactory;
-    this.transport = transport;
+    this.transport.setResponseHandler(this);
   }
 
-  public abstract void call(TAsyncMethodCall method);
+  public void call(TAsyncMethodCall method) {
+    transport.setCurrentMethodCall(method);
+    TProtocol oprot = outputProtocolFactory.getProtocol(transport);
+    method.start(oprot);
+  }
 
   public int nextSeqId() {
     return seqidGenerator.incrementAndGet();
@@ -86,7 +93,6 @@ public abstract class TAsyncClientManager implements AsyncResponseHandler {
     TProtocol iprot = inputProtocolFactory.getProtocol(transport);
     // Use the actual underlying protocol (e.g. TBinaryProtocol) to read the message header.
     TMessage messageBegin = null;
-    ;
     try {
       messageBegin = iprot.readMessageBegin();
     } catch (TException e) {
@@ -96,7 +102,7 @@ public abstract class TAsyncClientManager implements AsyncResponseHandler {
     int seqid = messageBegin.seqid;
     TAsyncMethodCall methodCall = seqid2MethodCall.get(seqid);
     if (methodCall == null) {
-      LOGGER.error("Received a message with seqid: " + seqid + ", but could not find the corresponding method call.");
+      LOGGER.warn("Method call for seqid: " + seqid + " does not exist, this may occur because of timeout.");
       return;
     }
     methodCall.responseReady(new StoredMessageProtocol(iprot, messageBegin));

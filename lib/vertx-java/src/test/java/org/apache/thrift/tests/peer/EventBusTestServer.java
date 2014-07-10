@@ -1,6 +1,7 @@
-package vertx.tests.eventbus.peer;
+package org.apache.thrift.tests.peer;
 
 import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.server.TEventBusServer;
 import org.vertx.java.testframework.TestClientBase;
 
@@ -67,4 +68,14 @@ public class EventBusTestServer extends TestClientBase {
     tu.testComplete();
   }
 
+  public void testJSONProtocolInitialize() {
+    CalculatorHandler handler = new CalculatorHandler();
+    Calculator.Processor processor = new Calculator.Processor(handler);
+    TEventBusServer.Args args = new TEventBusServer.Args(vertx, address);
+    args.processor(processor)
+        .protocolFactory(new TJSONProtocol.Factory());
+    TEventBusServer server = new TEventBusServer(args);
+    server.serve();
+    tu.testComplete();
+  }
 }

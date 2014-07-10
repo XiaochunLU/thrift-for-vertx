@@ -1,12 +1,12 @@
-package vertx.tests.eventbus;
+package org.apache.thrift.tests;
 
+import org.apache.thrift.tests.peer.EventBusTestClient;
+import org.apache.thrift.tests.peer.EventBusTestServer;
 import org.junit.Test;
 import org.vertx.java.testframework.TestBase;
 
-import vertx.tests.eventbus.peer.EventBusTestClient;
-import vertx.tests.eventbus.peer.EventBusTestServer;
 
-public class EventBusServiceTest extends TestBase {
+public class EventBusServerClientTest extends TestBase {
 
   @Override
   protected void setUp() throws Exception {
@@ -49,6 +49,11 @@ public class EventBusServiceTest extends TestBase {
   @Test
   public void testCompactProtocol() {
     testPeer("testCompactProtocolInitialize", "testCompactProtocol", true);
+  }
+
+  @Test
+  public void testJSONProtocol() {
+    testPeer("testJSONProtocolInitialize", "testJSONProtocol", true);
   }
 
   private void testPeer(String serverAction, String clientAction, boolean serverOnWorker) {
