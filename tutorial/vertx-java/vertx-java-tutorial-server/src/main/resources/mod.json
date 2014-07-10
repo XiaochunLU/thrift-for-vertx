@@ -1,0 +1,8 @@
+{
+
+  // Java verticle
+  "main": "org.apache.thrift.tutorial.ServerVerticle",
+
+  "auto-redeploy": true
+
+}

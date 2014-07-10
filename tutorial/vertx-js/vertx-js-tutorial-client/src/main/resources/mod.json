@@ -1,0 +1,9 @@
+{
+
+  "includes": "org.apache.thrift~libthrift-vertx-js~1.0-SNAPSHOT",
+
+  "main": "client_verticle.js",
+
+  "auto-redeploy": true
+
+}

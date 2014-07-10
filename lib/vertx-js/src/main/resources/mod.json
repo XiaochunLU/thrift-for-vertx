@@ -1,0 +1,10 @@
+{
+  "system": true,
+
+  "description": "This is a javascript implementation of Thrift for Vert.x",
+  "licenses": ["The Apache Software License Version 2.0"],
+  "author": "XiaochunLU",
+
+  "keywords": ["js", "javascript", "thrift", "system"],
+  "homepage": "https://github.com/XiaochunLU/thrift-for-vertx"
+}
