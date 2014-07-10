@@ -3,7 +3,7 @@
 
   "description": "This is a javascript implementation of Thrift for Vert.x",
   "licenses": ["The Apache Software License Version 2.0"],
-  "author": "XiaochunLU",
+  "author": "XiaochunLU <luxiaochun_1111@hotmail.com>",
 
   "keywords": ["js", "javascript", "thrift", "system"],
   "homepage": "https://github.com/XiaochunLU/thrift-for-vertx"

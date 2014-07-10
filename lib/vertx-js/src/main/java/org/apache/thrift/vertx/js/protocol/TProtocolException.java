@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.thrift.vertx.js;
+package org.apache.thrift.vertx.js.protocol;
 
 /**
  * Protocol exceptions.
