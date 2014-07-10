@@ -2,11 +2,11 @@ libthrift-vertx-java
 ====================
 
 This lib is developed with Maven, so that you can use Maven command:
-`mvn install` build and install the lib to local mvn repo
-`mvn integration-test` run unit tests
-`mvn eclipse:eclispe` generate eclipse project
-`mvn idea:idea` generate idea project
-`...`
+> * `mvn install` build and install the lib to local mvn repo
+> * `mvn integration-test` run unit tests
+> * `mvn eclipse:eclispe` generate eclipse project
+> * `mvn idea:idea` generate idea project
+> * `...`
 
 Supported transports
 --------------------
