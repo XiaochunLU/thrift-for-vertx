@@ -18,28 +18,19 @@
  */
 
 package org.apache.thrift.tutorial;
-/*
- *
- * Red Hat licenses this file to you under the Apache License, version 2.0
- * (the "License"); you may not use this file except in compliance with the
- * License.  You may obtain a copy of the License at:
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations
- * under the License.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
 
-import org.apache.thrift.async.TEventBusClientManager;
+import org.apache.thrift.async.TAsyncClientManager;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TJSONProtocol;
 import org.apache.thrift.transport.TEventBusTransport;
+import org.apache.thrift.transport.THttpClientTransport;
+import org.apache.thrift.transport.TFramedNetClientTransport;
+import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TWebSocketTransport;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
+import org.vertx.java.core.Handler;
 import org.vertx.java.core.VoidHandler;
 import org.vertx.java.platform.Verticle;
 
@@ -57,15 +48,100 @@ public class ClientVerticle extends Verticle {
       @Override
       protected void handle() {
         container.logger().info("testEventBusClient > Complete.");
+        
+        testNetClient(new VoidHandler() {
+          @Override
+          protected void handle() {
+            container.logger().info("testNetClient > Complete.");
+            
+            testWebSocketClient(new VoidHandler() {
+              @Override
+              protected void handle() {
+                container.logger().info("testWebSocketClient > Complete.");
+                
+                testHttpClient(new VoidHandler() {
+                  @Override
+                  protected void handle() {
+                    container.logger().info("testHttpClient > Complete.");
+                  }
+                });
+              }
+            });
+          }
+        });
       }
     });
   }
   
-  private void testEventBusClient(VoidHandler completeHandler) {
+  private void testEventBusClient(final VoidHandler completeHandler) {
+    container.logger().info("testEventBusClient > Start.");
     String address = container.config().getString("address");
-    TEventBusClientManager clientManager = new TEventBusClientManager(
-        new TEventBusTransport.Args(vertx.eventBus(), address),
-        new TBinaryProtocol.Factory());
+    TEventBusTransport transport = new TEventBusTransport(
+        new TEventBusTransport.Args(vertx, address));
+    TAsyncClientManager clientManager = new TAsyncClientManager(
+        transport, new TBinaryProtocol.Factory());
+    Calculator.VertxClient client = new Calculator.VertxClient(clientManager);
+    perform(client, completeHandler);
+  }
+
+  private void testNetClient(final VoidHandler completeHandler) {
+    container.logger().info("testNetClient > Start.");
+    int port = container.config().getInteger("net_port");
+    final TFramedNetClientTransport transport = new TFramedNetClientTransport(
+        new TFramedNetClientTransport.Args(vertx, port));
+    transport.connectHandler(new Handler<Void>() {
+      @Override
+      public void handle(Void event) {
+        TAsyncClientManager clientManager = new TAsyncClientManager(
+            transport, new TBinaryProtocol.Factory());
+        Calculator.VertxClient client = new Calculator.VertxClient(clientManager);
+        perform(client, completeHandler);
+      }
+    });
+    try {
+      transport.open();
+    } catch (TTransportException e) {
+      e.printStackTrace();
+      completeHandler.handle(null);
+    }
+  }
+
+  private void testWebSocketClient(final VoidHandler completeHandler) {
+    container.logger().info("testWebSocketClient > Start.");
+    int port = container.config().getInteger("websocket_port");
+    final TWebSocketTransport transport = new TWebSocketTransport(
+        new TWebSocketTransport.Args(vertx, port));
+    transport.connectHandler(new Handler<Void>() {
+      @Override
+      public void handle(Void event) {
+        TAsyncClientManager clientManager = new TAsyncClientManager(
+            transport, new TCompactProtocol.Factory());
+        Calculator.VertxClient client = new Calculator.VertxClient(clientManager);
+        perform(client, completeHandler);
+      }
+    });
+    try {
+      transport.open();
+    } catch (TTransportException e) {
+      e.printStackTrace();
+      completeHandler.handle(null);
+    }
+  }
+
+  private void testHttpClient(final VoidHandler completeHandler) {
+    container.logger().info("testHttpClient > Start.");
+    int port = container.config().getInteger("http_port");
+    THttpClientTransport transport = new THttpClientTransport(
+        new THttpClientTransport.Args(vertx, port));
+    try {
+      transport.open();
+    } catch (TTransportException e) {
+      e.printStackTrace();
+      completeHandler.handle(null);
+      return;
+    }
+    TAsyncClientManager clientManager = new TAsyncClientManager(
+        transport, new TJSONProtocol.Factory());
     Calculator.VertxClient client = new Calculator.VertxClient(clientManager);
     perform(client, completeHandler);
   }
@@ -126,8 +202,6 @@ public class ClientVerticle extends Verticle {
         });
       }
     });
-    counter.increase();
-
     counter.increase();
   }
 

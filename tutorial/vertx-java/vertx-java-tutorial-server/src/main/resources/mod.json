@@ -3,6 +3,13 @@
   // Java verticle
   "main": "org.apache.thrift.tutorial.ServerVerticle",
 
+  "description": "Java tutorial for libthrift-vertx-java",
+  "licenses": ["The Apache Software License Version 2.0"],
+  "author": "XiaochunLU <luxiaochun_1111@hotmail.com>",
+
+  "keywords": ["thrift", "java", "tutorial"],
+  "homepage": "https://github.com/XiaochunLU/thrift-for-vertx",
+
   "auto-redeploy": true
 
 }
