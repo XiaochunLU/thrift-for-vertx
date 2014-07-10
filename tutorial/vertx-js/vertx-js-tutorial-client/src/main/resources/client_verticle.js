@@ -58,9 +58,74 @@ function testEventBusClientPromise() {
   return deferred.promise();
 }
 
+function testFramedNetClient() {
+  var client = require('./client'),
+      deferred = new $.Deferred();
+  console.log('testFramedNetClient > Start');
+  client.run({
+    createConnection: function() {
+      return thrift.createFramedNetConnection(container.config.net_port, {
+        protocol: thrift.TBinaryProtocol
+      });
+    },
+    onComplete: function() {
+      console.log('testFramedNetClient > Complete');
+      deferred.resolve();
+    }
+  });
+  return deferred.promise();
+}
+
+function testWebSocketClient() {
+  var client = require('./client'),
+      deferred = new $.Deferred();
+  console.log('testWebSocketClient > Start');
+  client.run({
+    createConnection: function() {
+      return thrift.createWebSocketConnection(container.config.websocket_port, {
+        uri: '/calculator',
+        protocol: thrift.TCompactProtocol
+      });
+    },
+    onComplete: function() {
+      console.log('testWebSocketClient > Complete');
+      deferred.resolve();
+    }
+  });
+  return deferred.promise();
+}
+
+function testHttpClient() {
+  var client = require('./client'),
+      deferred = new $.Deferred();
+  console.log('testHttpClient > Start');
+  client.run({
+    createConnection: function() {
+      return thrift.createHttpConnection(container.config.http_port, {
+        uri: '/calculator',
+        protocol: thrift.TJSONProtocol
+      });
+    },
+    onComplete: function() {
+      console.log('testHttpClient > Complete');
+      deferred.resolve();
+    }
+  });
+  return deferred.promise();
+}
+
 testEventBusClient()
   .then(function() {
     return testEventBusClientPromise();
+  })
+  .then(function() {
+    return testFramedNetClient();
+  })
+  .then(function() {
+    return testWebSocketClient();
+  })
+  .then(function() {
+    return testHttpClient();
   })
   .done(function() {
     container.logger.info('Tests complete!');

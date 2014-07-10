@@ -230,3 +230,5 @@ node_modules
 lib/java/thrift-lib-java.iml
 lib/java/.idea/
 lib/vertx-java/src/test/idl/gen.bat
+
+tutorial/vertx-js/vertx-js-tutorial-client/src/main/platform_lib/repos.txt

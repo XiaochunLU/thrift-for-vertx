@@ -22,13 +22,54 @@ var console = require('vertx/console');
 var thrift = require('thrift');
 
 function testEventBusServer() {
-  var server = thrift.createEventBusServer(require('./processor').processor, {
-    address: container.config.address,
-    protocol: thrift.TBinaryProtocol
-  });
+  var address = container.config.address,
+      server = thrift.createEventBusServer(require('./processor').processor, {
+        address: address,
+        protocol: thrift.TBinaryProtocol
+      });
   server.serve();
-  console.log('testEventBusServer > Server started.');
+  console.log('EventBusServer started on address: ' + address);
+}
+
+function testFramedNetServer() {
+  var port = container.config.net_port,
+      server = thrift.createFramedNetServer(require('./processor').processor, {
+        port: port,
+        protocol: thrift.TBinaryProtocol
+      });
+  server.serve();
+  console.log('FramedNetServer listening on port: ' + port + ' (expecting TBinaryProtocol).');
+}
+
+function testWebSocketServer() {
+  var port = container.config.websocket_port,
+      server = thrift.createWebSocketServer(require('./processor').processor, {
+        port: port,
+        uri: '/calculator',
+        protocol: thrift.TCompactProtocol
+      });
+  server.serve();
+  console.log('WebSocketServer listening on port: ' + port + ' (expecting TCompactProtocol).');
+}
+
+function testHttpServer() {
+  var port = container.config.http_port,
+      server = thrift.createHttpServer({
+        port: port,
+        protocol: thrift.TJSONProtocol,
+        services: {
+          '/calculator': require('./processor').processor
+        }
+      });
+  server.serve();
+  console.log('HttpServer listening on port: ' + port + ' (expecting TJSONProtocol).');
 }
 
 // Start EventBus server
 testEventBusServer();
+// Start Net server
+testFramedNetServer();
+// Start WebSocket server
+testWebSocketServer();
+// Start Http server
+testHttpServer();
