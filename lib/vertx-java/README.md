@@ -31,7 +31,7 @@ Service client
 
 Compiler
 --------
-Specify _--gen java:vertx_ to generate your thrift files into javascript source for using with this lib.
+Specify _--gen java:vertx_ to generate your thrift files into java source for using with this lib.
 
 How to use with Vert.x
 ----------------------
