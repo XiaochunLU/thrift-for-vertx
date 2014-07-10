@@ -29,6 +29,15 @@ Service client
 - Client side supports only **async**.
   - Note: The generated client interface accepts `org.vertx.java.core.AsyncResultHandler<ReturnType>` as a parameter, so that you can pass a handler to be notified asynchronously.
 
+Compiler
+--------
+Specify _--gen java:vertx_ to generate your thrift files into javascript source for using with this lib.
+
+How to use with Vert.x
+----------------------
+Set it as a Maven or Gradle dependency.
+NOTE: This lib may not be publicly available right now, so you'd better install it to your local mvn repo.
+
 TODO
 ----
 - Unit tests cover only the Main Flow, need more comprehensive test.
