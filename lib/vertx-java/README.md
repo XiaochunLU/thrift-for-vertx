@@ -20,6 +20,7 @@ Supported Protocols
 - TBinaryProtocol
 - TCompactProtocol
 - TJSONProtocol
+- TMultiplexedProtocol
 
 Service client
 --------------
