@@ -15,8 +15,14 @@ This has the thrift IDL compiler.  I've add two new switches to generate code fo
 
 ### lib
 
-Libraries for vertx java/js. See READMEs inside their folder.
+Libraries for vertx java/js implementation.
+See [lib/vertx-java](lib/vertx-java) and [lib/vertx-js](lib/vertx-js).
 
 ### tutorial
 
-This is the tutorial projects for vertx java/js. See READMEs inside their folder.
+This is the tutorial projects for vertx java/js.
+See [tutorial/vertx-java](tutorial/vertx-java) and [tutorial/vertx-js](tutorial/vertx-js).
+
+Download a precompiled Compiler
+-------------------------------
+You can download it [here](compiler/bin/thrift.exe.zip?raw=true)
