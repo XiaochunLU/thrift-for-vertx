@@ -4,6 +4,13 @@
 
   "main": "server_verticle.js",
 
+  "description": "Java tutorial for libthrift-vertx-js",
+  "licenses": ["The Apache Software License Version 2.0"],
+  "author": "XiaochunLU <luxiaochun_1111@hotmail.com>",
+
+  "keywords": ["thrift", "javascript", "js", "tutorial"],
+  "homepage": "https://github.com/XiaochunLU/thrift-for-vertx",
+
   "auto-redeploy": true
 
 }
